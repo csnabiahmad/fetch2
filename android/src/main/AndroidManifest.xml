@@ -12,6 +12,7 @@
         android:allowBackup="true"
         android:label=""
         android:supportsRtl="true"
+        android:requestLegacyExternalStorage="true"
         android:theme="@style/AppTheme">
         <activity
             android:name=".VideoPlayerActivity"
