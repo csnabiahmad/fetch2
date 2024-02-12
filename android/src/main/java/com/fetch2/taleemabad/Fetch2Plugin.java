@@ -4,6 +4,8 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Environment;
 import android.util.Log;
+
+import com.tonyodev.fetch2.Download;
 import com.tonyodev.fetch2.Fetch;
 import com.tonyodev.fetch2.FetchConfiguration;
 import com.tonyodev.fetch2.FetchListener;
@@ -12,6 +14,7 @@ import com.tonyodev.fetch2.Priority;
 import com.tonyodev.fetch2.Request;
 import com.tonyodev.fetch2core.Downloader;
 import com.tonyodev.fetch2okhttp.OkHttpDownloader;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,8 +35,41 @@ public class Fetch2Plugin {
                                 .setHttpDownloader(new OkHttpDownloader(Downloader.FileDownloaderType.PARALLEL))
                                 .setNamespace(namespace)
                                 .setGlobalNetworkType(NetworkType.ALL)
+                                .enableAutoStart(true)
+                                .enableRetryOnNetworkGain(true)
+                                .enableFileExistChecks(true)
+                                .setAutoRetryMaxAttempts(3)
+                                .enableLogging(true)
                                 .build()
                 );
+    }
+
+    public void resumeDownload() {
+        fetch.getDownloadsInGroup(groupId, downloads -> {
+            for (Download download : downloads) {
+                switch (download.getStatus()) {
+                    case COMPLETED: {
+                        Log.d(TAG, "COMPLETED:: " + download.getId() + " => " + download.getStatus());
+                    }
+                    case PAUSED: {
+                        Log.d(TAG, "PAUSED:: " + download.getId() + " => " + download.getStatus());
+                        fetch.resume(download.getId());
+                    }
+                    case FAILED: {
+                        Log.d(TAG, "FAILED:: " + download.getId() + " => " + download.getStatus());
+                        fetch.retry(download.getId());
+                    }
+                    case CANCELLED: {
+                        Log.d(TAG, "CANCELLED:: " + download.getId() + " => " + download.getStatus());
+                        fetch.resume(download.getId());
+                    }
+                    default: {
+                        Log.d(TAG, "STATUS:: " + download.getId() + " => " + download.getStatus());
+                    }
+                    break;
+                }
+            }
+        });
     }
 
     public void initFetch(List<String> urls, FetchListener fetchListener) {
