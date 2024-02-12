@@ -5,7 +5,7 @@ Capacitor plugin for android using Fetch library to download files
 ## Install
 
 ```bash
-npm install fetch2
+npm install git+https://github.com/csnabiahmad/fetch2.git
 npx cap sync android
 ```
 
