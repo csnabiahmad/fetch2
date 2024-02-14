@@ -1,117 +1,205 @@
 package com.fetch2.taleemabad;
 
-import android.content.Context;
-import android.net.Uri;
-import android.os.Environment;
+import static androidx.core.content.ContextCompat.startActivity;
+
+import android.Manifest;
+import android.content.Intent;
+import android.os.Build;
+import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
+
+import com.getcapacitor.JSArray;
+import com.getcapacitor.JSObject;
+import com.getcapacitor.Plugin;
+import com.getcapacitor.PluginCall;
+import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.CapacitorPlugin;
+import com.getcapacitor.annotation.Permission;
+import com.google.gson.Gson;
+import com.permissionx.guolindev.PermissionX;
 import com.tonyodev.fetch2.Download;
-import com.tonyodev.fetch2.Fetch;
-import com.tonyodev.fetch2.FetchConfiguration;
+import com.tonyodev.fetch2.Error;
 import com.tonyodev.fetch2.FetchListener;
-import com.tonyodev.fetch2.NetworkType;
-import com.tonyodev.fetch2.Priority;
-import com.tonyodev.fetch2.Request;
-import com.tonyodev.fetch2core.Downloader;
-import com.tonyodev.fetch2okhttp.OkHttpDownloader;
+import com.tonyodev.fetch2core.DownloadBlock;
 
-import java.util.ArrayList;
+import java.io.File;
 import java.util.List;
 
-public class Fetch2Plugin {
-    private static final String TAG = "Fetch2";
-    private static final String namespace = "Fetch2";
-    private final int groupId = namespace.hashCode();
-    private final Context mContext;
-    private final Fetch fetch;
+@CapacitorPlugin(
+        name = "Fetch2Plugin",
+        permissions = {
+                @Permission(
+                        strings = {
+                                Manifest.permission.READ_EXTERNAL_STORAGE,
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                        },
+                        alias = "storage"
+                )
+        }
+)
+public class Fetch2Plugin extends Plugin implements FetchListener {
 
-    public Fetch2Plugin(Context context) {
-        Log.d(TAG, "Fetch2Plugin: ");
-        mContext = context;
-        fetch =
-                Fetch.Impl.getInstance(
-                        new FetchConfiguration.Builder(context)
-                                .setDownloadConcurrentLimit(3)
-                                .setHttpDownloader(new OkHttpDownloader(Downloader.FileDownloaderType.PARALLEL))
-                                .setNamespace(namespace)
-                                .setGlobalNetworkType(NetworkType.ALL)
-                                .enableAutoStart(true)
-                                .enableRetryOnNetworkGain(true)
-                                .enableFileExistChecks(true)
-                                .setAutoRetryMaxAttempts(3)
-                                .enableLogging(true)
-                                .build()
+    private Fetch2 fetch2;
+    private static final String TAG = "Fetch2";
+
+    private void initPlugin() {
+        fetch2 = Fetch2.getInstance(this.getActivity(), this);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.R)
+    @PluginMethod
+    public void startFetch(PluginCall call) {
+        this.getActivity().getMainExecutor().execute(() -> {
+                            initPlugin();
+                            saveCall(call);
+                            checkStoragePermissions();
+                        });
+    }
+
+
+    @RequiresApi(api = Build.VERSION_CODES.R)
+    @PluginMethod
+    public void startVideoPlayer(PluginCall call) {
+        JSArray url = call.getArray("url");
+        JSObject ret = new JSObject();
+        ret.put("value", url);
+        try {
+            String videoPath = url.get(0).toString();
+            if (!new File(videoPath).exists()) {
+                ret.put("error", "File not found");
+                call.reject("File not found");
+            } else {
+                Intent intent = new Intent(this.getActivity(), VideoPlayerActivity.class);
+                intent.putExtra("videoPath", videoPath);
+                Bundle bundle = new Bundle();
+                bundle.putString("videoPath", videoPath);
+                startActivity(this.getActivity(), intent, bundle);
+                call.resolve(ret);
+            }
+
+        } catch (Exception e) {
+            ret.put("error", e.getMessage());
+            call.reject(e.getMessage());
+        }
+
+    }
+
+
+
+    @RequiresApi(api = Build.VERSION_CODES.R)
+    private void checkStoragePermissions() {
+        PermissionX
+                .init(this.getActivity())
+                .permissions(
+                        (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+                                ? new String[]{Manifest.permission.MANAGE_EXTERNAL_STORAGE}
+                                : new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE,}
+                )
+                .explainReasonBeforeRequest()
+                .onExplainRequestReason(
+                        (scope, deniedList) ->
+                                scope.showRequestReasonDialog(deniedList, "Core fundamental are based on these permissions", "OK", "Cancel")
+                )
+                .onForwardToSettings(
+                        (scope, deniedList) ->
+                                scope.showForwardToSettingsDialog(
+                                        deniedList,
+                                        "You need to allow necessary permissions in Settings manually",
+                                        "OK",
+                                        "Cancel"
+                                )
+                )
+                .request(
+                        (allGranted, grantList, deniedList) -> {
+                            if (allGranted) {
+                                fetch2.initDownloading(getSavedCall());
+                            } else {
+                                Toast.makeText(this.getActivity(), "These permissions are denied: " + deniedList, Toast.LENGTH_LONG).show();
+                            }
+                        }
                 );
     }
 
-    public void resumeDownload() {
-        fetch.getDownloadsInGroup(groupId, downloads -> {
-            for (Download download : downloads) {
-                switch (download.getStatus()) {
-                    case COMPLETED: {
-                        Log.d(TAG, "COMPLETED:: " + download.getId() + " => " + download.getStatus());
-                    }
-                    case PAUSED: {
-                        Log.d(TAG, "PAUSED:: " + download.getId() + " => " + download.getStatus());
-                        fetch.resume(download.getId());
-                    }
-                    case FAILED: {
-                        Log.d(TAG, "FAILED:: " + download.getId() + " => " + download.getStatus());
-                        fetch.retry(download.getId());
-                    }
-                    case CANCELLED: {
-                        Log.d(TAG, "CANCELLED:: " + download.getId() + " => " + download.getStatus());
-                        fetch.resume(download.getId());
-                    }
-                    default: {
-                        Log.d(TAG, "STATUS:: " + download.getId() + " => " + download.getStatus());
-                    }
-                    break;
-                }
-            }
-        });
+    @Override
+    public void onAdded(@NonNull Download download) {
+        Log.d(TAG, DownloadEvent.ON_ADDED + " : " + download);
+        notifyListeners(DownloadEvent.ON_ADDED, new JSObject().put("download", new Gson().toJson(download)));
     }
 
-    public void initFetch(List<String> urls, FetchListener fetchListener) {
-        fetch.addListener(fetchListener);
-        fetch.enqueue(
-                getFetchRequests(urls),
-                updatedRequests -> {
-                    Log.d(TAG, "enqueue: " + updatedRequests);
-                }
-        );
+    @Override
+    public void onCancelled(@NonNull Download download) {
+        Log.d(TAG, DownloadEvent.ON_CANCELLED + download);
+        notifyListeners(DownloadEvent.ON_CANCELLED, new JSObject().put("download", new Gson().toJson(download)));
     }
 
-    private String getFilePath(String url, Context context) {
-        String fileName = getNameFromUrl(url);
-        String dir = getSaveDir(context);
-        return dir + "/" + fileName;
+    @Override
+    public void onCompleted(@NonNull Download download) {
+        Log.d(TAG, DownloadEvent.ON_COMPLETED + download);
+        notifyListeners(DownloadEvent.ON_COMPLETED, new JSObject().put("download", new Gson().toJson(download)));
     }
 
-    private String getNameFromUrl(String url) {
-        return Uri.parse(url).getLastPathSegment();
+    @Override
+    public void onDeleted(@NonNull Download download) {
+        Log.d(TAG, DownloadEvent.ON_DELETED + download);
+        notifyListeners(DownloadEvent.ON_DELETED, new JSObject().put("download", new Gson().toJson(download)));
     }
 
-    private String getSaveDir(Context context) {
-        try {
-            return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
-        } catch (Exception e) {
-            return String.valueOf(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS));
-        }
+    @Override
+    public void onDownloadBlockUpdated(@NonNull Download download, @NonNull DownloadBlock downloadBlock, int i) {
+        Log.d(TAG, DownloadEvent.ON_DOWNLOAD_BLOCK_UPDATED + " : " + download);
+        notifyListeners(DownloadEvent.ON_DOWNLOAD_BLOCK_UPDATED, new JSObject().put("download", new Gson().toJson(download)));
     }
 
-    private List<Request> getFetchRequests(List<String> urls) {
-        Log.d(TAG, "initFetch: " + urls.toString());
-        ArrayList<Request> requests = new ArrayList<>();
-        for (String url : urls) {
-            String fileName = getFilePath(url, mContext);
-            Request request = new Request(url, fileName);
-            request.setGroupId(groupId);
-            request.setPriority(Priority.HIGH);
-            request.setTag(fileName);
-            request.setNetworkType(NetworkType.ALL);
-            requests.add(request);
-        }
-        return requests;
+    @Override
+    public void onError(@NonNull Download download, @NonNull Error error, @Nullable Throwable throwable) {
+        Log.d(TAG, DownloadEvent.ON_ERROR + " : " + download);
+        notifyListeners(DownloadEvent.ON_ERROR, new JSObject().put("download", new Gson().toJson(download)));
+    }
+
+    @Override
+    public void onPaused(@NonNull Download download) {
+        Log.d(TAG, DownloadEvent.ON_PAUSED + " : " + download);
+        notifyListeners(DownloadEvent.ON_PAUSED, new JSObject().put("download", new Gson().toJson(download)));
+    }
+
+    @Override
+    public void onProgress(@NonNull Download download, long l, long l1) {
+        Log.d(TAG, DownloadEvent.ON_PROGRESS + " : " + download);
+        notifyListeners(DownloadEvent.ON_PROGRESS, new JSObject().put("download", new Gson().toJson(download)));
+    }
+
+    @Override
+    public void onQueued(@NonNull Download download, boolean b) {
+        Log.d(TAG, DownloadEvent.ON_QUEUED + " : " + download);
+        notifyListeners(DownloadEvent.ON_QUEUED, new JSObject().put("download", new Gson().toJson(download)));
+    }
+
+    @Override
+    public void onRemoved(@NonNull Download download) {
+        Log.d(TAG, DownloadEvent.ON_REMOVED + " : " + download);
+        notifyListeners(DownloadEvent.ON_REMOVED, new JSObject().put("download", new Gson().toJson(download)));
+    }
+
+    @Override
+    public void onResumed(@NonNull Download download) {
+        Log.d(TAG, DownloadEvent.ON_RESUMED + " : " + download);
+        notifyListeners(DownloadEvent.ON_RESUMED, new JSObject().put("download", new Gson().toJson(download)));
+    }
+
+    @Override
+    public void onStarted(@NonNull Download download, @NonNull List<? extends DownloadBlock> list, int i) {
+        Log.d(TAG, DownloadEvent.ON_STARTED + " : " + download);
+        notifyListeners(DownloadEvent.ON_STARTED, new JSObject().put("download", new Gson().toJson(download)));
+    }
+
+    @Override
+    public void onWaitingNetwork(@NonNull Download download) {
+        Log.d(TAG, DownloadEvent.ON_WAITING_NETWORK + download);
+        notifyListeners(DownloadEvent.ON_WAITING_NETWORK, new JSObject().put("download", new Gson().toJson(download)));
     }
 }
