@@ -30,18 +30,12 @@ import com.tonyodev.fetch2core.DownloadBlock;
 import java.io.File;
 import java.util.List;
 
-@CapacitorPlugin(
-        name = "Fetch2Plugin",
-        permissions = {
-                @Permission(
-                        strings = {
-                                Manifest.permission.READ_EXTERNAL_STORAGE,
-                                Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                        },
-                        alias = "storage"
-                )
-        }
-)
+@CapacitorPlugin(name = "Fetch2Plugin", permissions = {
+        @Permission(strings = {
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+        }, alias = "storage")
+})
 public class Fetch2Plugin extends Plugin implements FetchListener {
 
     private Fetch2 fetch2;
@@ -55,12 +49,11 @@ public class Fetch2Plugin extends Plugin implements FetchListener {
     @PluginMethod
     public void startFetch(PluginCall call) {
         this.getActivity().getMainExecutor().execute(() -> {
-                            initPlugin();
-                            saveCall(call);
-                            checkStoragePermissions();
-                        });
+            initPlugin();
+            saveCall(call);
+            checkStoragePermissions();
+        });
     }
-
 
     @RequiresApi(api = Build.VERSION_CODES.R)
     @PluginMethod
@@ -89,40 +82,34 @@ public class Fetch2Plugin extends Plugin implements FetchListener {
 
     }
 
-
-
     @RequiresApi(api = Build.VERSION_CODES.R)
     private void checkStoragePermissions() {
         PermissionX
                 .init(this.getActivity())
                 .permissions(
                         (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-                                ? new String[]{Manifest.permission.MANAGE_EXTERNAL_STORAGE}
-                                : new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE,}
-                )
+                                ? new String[] { Manifest.permission.MANAGE_EXTERNAL_STORAGE }
+                                : new String[] { Manifest.permission.READ_EXTERNAL_STORAGE,
+                                        Manifest.permission.WRITE_EXTERNAL_STORAGE, })
                 .explainReasonBeforeRequest()
                 .onExplainRequestReason(
-                        (scope, deniedList) ->
-                                scope.showRequestReasonDialog(deniedList, "Core fundamental are based on these permissions", "OK", "Cancel")
-                )
+                        (scope, deniedList) -> scope.showRequestReasonDialog(deniedList,
+                                "Core fundamental are based on these permissions", "OK", "Cancel"))
                 .onForwardToSettings(
-                        (scope, deniedList) ->
-                                scope.showForwardToSettingsDialog(
-                                        deniedList,
-                                        "You need to allow necessary permissions in Settings manually",
-                                        "OK",
-                                        "Cancel"
-                                )
-                )
+                        (scope, deniedList) -> scope.showForwardToSettingsDialog(
+                                deniedList,
+                                "You need to allow necessary permissions in Settings manually",
+                                "OK",
+                                "Cancel"))
                 .request(
                         (allGranted, grantList, deniedList) -> {
                             if (allGranted) {
                                 fetch2.initDownloading(getSavedCall());
                             } else {
-                                Toast.makeText(this.getActivity(), "These permissions are denied: " + deniedList, Toast.LENGTH_LONG).show();
+                                Toast.makeText(this.getActivity(), "These permissions are denied: " + deniedList,
+                                        Toast.LENGTH_LONG).show();
                             }
-                        }
-                );
+                        });
     }
 
     @Override
@@ -152,7 +139,8 @@ public class Fetch2Plugin extends Plugin implements FetchListener {
     @Override
     public void onDownloadBlockUpdated(@NonNull Download download, @NonNull DownloadBlock downloadBlock, int i) {
         Log.d(TAG, DownloadEvent.ON_DOWNLOAD_BLOCK_UPDATED + " : " + download);
-        notifyListeners(DownloadEvent.ON_DOWNLOAD_BLOCK_UPDATED, new JSObject().put("download", new Gson().toJson(download)));
+        notifyListeners(DownloadEvent.ON_DOWNLOAD_BLOCK_UPDATED,
+                new JSObject().put("download", new Gson().toJson(download)));
     }
 
     @Override
