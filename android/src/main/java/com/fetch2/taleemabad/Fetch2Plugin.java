@@ -4,6 +4,7 @@ import static androidx.core.content.ContextCompat.startActivity;
 
 import android.Manifest;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -38,18 +39,19 @@ import java.util.List;
 })
 public class Fetch2Plugin extends Plugin implements FetchListener {
 
-    private Fetch2 fetch2;
+    private Fetch2 fetch2 = null;
     private static final String TAG = "Fetch2";
 
-    private void initPlugin() {
-        fetch2 = Fetch2.getInstance(this.getActivity(), this);
+    private void initFetch2() {
+        if (fetch2 == null)
+            fetch2 = Fetch2.getInstance(this.getActivity(), this);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.R)
     @PluginMethod
     public void startFetch(PluginCall call) {
         this.getActivity().getMainExecutor().execute(() -> {
-            initPlugin();
+            initFetch2();
             saveCall(call);
             checkStoragePermissions();
         });
@@ -83,14 +85,33 @@ public class Fetch2Plugin extends Plugin implements FetchListener {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.R)
+    @PluginMethod
+    public void fetchDownloadList(PluginCall call) {
+        try {
+            initFetch2();
+            AsyncTask.execute(() -> {
+                List<Download> downloadList = fetch2.getFetchDownloads();
+                JSObject ret = new JSObject();
+                ret.put("download", new Gson().toJson(downloadList));
+                call.resolve(ret);
+            });
+        } catch (Exception e) {
+            JSObject ret = new JSObject();
+            ret.put("error", e.getMessage());
+            notifyListeners("downloadList", ret);
+            call.reject(e.getMessage());
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.R)
     private void checkStoragePermissions() {
         PermissionX
                 .init(this.getActivity())
                 .permissions(
                         (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-                                ? new String[] { Manifest.permission.MANAGE_EXTERNAL_STORAGE }
-                                : new String[] { Manifest.permission.READ_EXTERNAL_STORAGE,
-                                        Manifest.permission.WRITE_EXTERNAL_STORAGE, })
+                                ? new String[]{Manifest.permission.MANAGE_EXTERNAL_STORAGE}
+                                : new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE,})
                 .explainReasonBeforeRequest()
                 .onExplainRequestReason(
                         (scope, deniedList) -> scope.showRequestReasonDialog(deniedList,

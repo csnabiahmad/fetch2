@@ -10,7 +10,10 @@ export interface Fetch2PluginPlugin {
     }): Promise<{
         value: string[];
     }>;
-    addListener(eventName: String, listenerFunc: (download: {
+    fetchDownloadList(options: string): Promise<{
+        value: string;
+    }>;
+    addListener(eventName: string, listenerFunc: (download: {
         result: string;
     }) => void): PluginListenerHandle;
 }

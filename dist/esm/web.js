@@ -8,5 +8,9 @@ export class Fetch2PluginWeb extends WebPlugin {
         console.log('startVideo', options);
         return { value: options.url };
     }
+    async fetchDownloadList(options) {
+        console.log('startVideo', options);
+        return { value: options };
+    }
 }
 //# sourceMappingURL=web.js.map

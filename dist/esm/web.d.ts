@@ -11,4 +11,7 @@ export declare class Fetch2PluginWeb extends WebPlugin implements Fetch2PluginPl
     }): Promise<{
         value: string[];
     }>;
+    fetchDownloadList(options: string): Promise<{
+        value: string;
+    }>;
 }

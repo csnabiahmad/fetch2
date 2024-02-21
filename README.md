@@ -15,7 +15,8 @@ npx cap sync android
 
 * [`startFetch(...)`](#startfetch)
 * [`startVideo(...)`](#startvideo)
-* [`addListener(String, ...)`](#addlistenerstring)
+* [`fetchDownloadList(...)`](#fetchdownloadlist)
+* [`addListener(string, ...)`](#addlistenerstring)
 * [Interfaces](#interfaces)
 
 </docgen-index>

@@ -17,6 +17,10 @@ class Fetch2PluginWeb extends core.WebPlugin {
         console.log('startVideo', options);
         return { value: options.url };
     }
+    async fetchDownloadList(options) {
+        console.log('startVideo', options);
+        return { value: options };
+    }
 }
 
 var web = /*#__PURE__*/Object.freeze({

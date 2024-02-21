@@ -14,6 +14,10 @@ var capacitorFetch2Plugin = (function (exports, core) {
             console.log('startVideo', options);
             return { value: options.url };
         }
+        async fetchDownloadList(options) {
+            console.log('startVideo', options);
+            return { value: options };
+        }
     }
 
     var web = /*#__PURE__*/Object.freeze({

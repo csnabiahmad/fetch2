@@ -23,7 +23,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Fetch2{
+public class Fetch2 {
 
     private static final String TAG = "Fetch2";
     private static final String namespace = "Fetch2";
@@ -33,7 +33,7 @@ public class Fetch2{
     private static Fetch2 instance;
     private static FetchListener mFetchListener;
 
-    public static Fetch2 getInstance(@NonNull Context context,FetchListener fetchListener) {
+    public static Fetch2 getInstance(@NonNull Context context, FetchListener fetchListener) {
         // If the instance is null, create a new instance
         if (instance == null) {
             instance = new Fetch2(context);
@@ -53,7 +53,9 @@ public class Fetch2{
         return fetch;
     }
 
-    public String getNamespace() {return namespace;}
+    public String getNamespace() {
+        return namespace;
+    }
 
     public int getGroupID() {
         return groupId;
@@ -73,6 +75,7 @@ public class Fetch2{
                         .build()
         );
     }
+
     private void startDownloading(List<String> urls, FetchListener fetchListener) {
         fetch.addListener(fetchListener);
         fetch.enqueue(
@@ -82,6 +85,7 @@ public class Fetch2{
                 }
         );
     }
+
     private List<Request> getFetchRequests(List<String> urls) {
         Log.d(TAG, "initFetch: " + urls.toString());
         ArrayList<Request> requests = new ArrayList<>();
@@ -96,6 +100,7 @@ public class Fetch2{
         }
         return requests;
     }
+
     public void initDownloading(PluginCall call) {
         JSArray url = call.getArray("url");
         JSObject ret = new JSObject();
@@ -108,6 +113,25 @@ public class Fetch2{
         call.resolve(ret);
     }
 
+    public List<Download> getFetchDownloads() {
+        if (fetch == null) {
+            fetch = init();
+        }
+        List<Download> downloadList = new ArrayList<>();
+        fetch.getFetchGroup(groupId, fetchGroup -> {
+            try {
+                Log.d(TAG, "FetchGroup: " + fetchGroup.getId());
+                List<Download> downloads = fetchGroup.getDownloads();
+                for (Download download : downloads) {
+                    Log.d(TAG, "Download File:: " + download.getId() + " : " + download.getStatus() + " => " + download.getFile());
+                    downloadList.add(download);
+                }
+            } catch (FetchException e) {
+                Log.d(TAG, "FetchException: " + e.getMessage());
+            }
+        });
+        return downloadList;
+    }
 
     public void resumeDownloads() {
         if (fetch == null) {
@@ -118,45 +142,34 @@ public class Fetch2{
                 Log.d(TAG, "FetchGroup: " + fetchGroup.getId());
                 List<Download> downloads = fetchGroup.getDownloads();
                 for (Download download : downloads) {
-                    switch (download.getStatus()) {
-                        case COMPLETED: {
-                            File file = new File(download.getFile());
-                            if (!file.exists()) {
-                                fetch.retry(download.getId());
-                                Log.d(TAG, "COMPLETED:: Retry because file doesn't exists => " + download.getFile());
+                    Log.d(TAG, "Download File:: " + download.getId() + " : " + download.getStatus() + " => " + download.getFile());
+                    if (!new File(download.getFile()).exists()) {
+                        Log.d(TAG, "File Removed:: " + download.getId() + " => " + download.getFile());
+                        fetch.remove(download.getId());
+                    } else {
+                        switch (download.getStatus()) {
+                            case COMPLETED -> Log.d(TAG, "COMPLETED:: " + download.getId() + " => " + download.getStatus());
+                            case PAUSED -> {
+                                Log.d(TAG, "PAUSED:: " + download.getId() + " => " + download.getStatus());
+                                fetch.resume(download.getId());
                             }
-                            else
-                                Log.d(TAG, "COMPLETED:: " + download.getId() + " => " + download.getStatus());
-                            break;
-                        }
-                        case PAUSED: {
-                            Log.d(TAG, "PAUSED:: " + download.getId() + " => " + download.getStatus());
-                            fetch.resume(download.getId());
-                            break;
-                        }
-                        case FAILED: {
-                            Log.d(TAG, "FAILED:: " + download.getId() + " => " + download.getStatus());
-                            fetch.retry(download.getId());
-                            break;
-                        }
-                        case CANCELLED: {
-                            Log.d(TAG, "CANCELLED:: " + download.getId() + " => " + download.getStatus());
-                            fetch.resume(download.getId());
-                            break;
-                        }
-                        case QUEUED: {
-                            Log.d(TAG, "QUEUED:: " + download.getId() + " => " + download.getStatus());
-                            fetch.resume(download.getId());
-                            break;
-                        }
-                        default: {
-                            Log.d(TAG, "STATUS:: " + download.getId() + " => " + download.getStatus());
-                            break;
+                            case FAILED -> {
+                                Log.d(TAG, "FAILED:: " + download.getId() + " => " + download.getStatus());
+                                fetch.retry(download.getId());
+                            }
+                            case CANCELLED -> {
+                                Log.d(TAG, "CANCELLED:: " + download.getId() + " => " + download.getStatus());
+                                fetch.resume(download.getId());
+                            }
+                            case QUEUED -> {
+                                Log.d(TAG, "QUEUED:: " + download.getId() + " => " + download.getStatus());
+                                fetch.resume(download.getId());
+                            }
+                            default -> Log.d(TAG, "STATUS:: " + download.getId() + " => " + download.getStatus());
                         }
                     }
                 }
-            }
-            catch (FetchException e) {
+            } catch (FetchException e) {
                 Log.d(TAG, "FetchException: " + e.getMessage());
             }
         });
