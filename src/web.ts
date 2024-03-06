@@ -10,7 +10,7 @@ export class Fetch2PluginWeb extends WebPlugin implements Fetch2PluginPlugin {
     return { value: options.url };
   }
   async fetchDownloadList(options: string): Promise<{ value: string }> {
-    console.log('startVideo', options);
+    console.log('fetchDownloadList', options);
     return { value: options };
   }
 }

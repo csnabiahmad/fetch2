@@ -9,7 +9,7 @@ export class Fetch2PluginWeb extends WebPlugin {
         return { value: options.url };
     }
     async fetchDownloadList(options) {
-        console.log('startVideo', options);
+        console.log('fetchDownloadList', options);
         return { value: options };
     }
 }

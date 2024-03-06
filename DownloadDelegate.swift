@@ -6,3 +6,10 @@
 //
 
 import Foundation
+
+protocol DownloadDelegate {
+    func didFinish(_ donwloads: Download?)
+    func didError(_ donwloads: Download?)
+    func didProgress(_ donwloads: Download?)
+}
+
