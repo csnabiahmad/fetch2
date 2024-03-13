@@ -2,7 +2,7 @@ import Foundation
 import Capacitor
  
 @objc(Fetch2PluginPlugin)
-public class Fetch2PluginPlugin: CAPPlugin /*, URLSessionDownloadDelegate , DownloadDelegate*/ {
+public class Fetch2PluginPlugin: CAPPlugin {
   
     private let implementation = Fetch2Plugin()
     private var downloadManager : DownloadManager!
