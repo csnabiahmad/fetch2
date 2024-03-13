@@ -6,7 +6,7 @@ Capacitor plugin for android using Fetch library to download files
 
 ```bash
 npm install git+https://github.com/csnabiahmad/fetch2.git
-npx cap sync android
+npx cap sync
 ```
 
 ## API
@@ -14,7 +14,6 @@ npx cap sync android
 <docgen-index>
 
 * [`startFetch(...)`](#startfetch)
-* [`startVideo(...)`](#startvideo)
 * [`fetchDownloadList(...)`](#fetchdownloadlist)
 * [`addListener(string, ...)`](#addlistenerstring)
 * [Interfaces](#interfaces)
@@ -36,20 +35,6 @@ startFetch(options: { url: string[]; }) => Promise<{ value: string[]; }>
 
 **Returns:** <code>Promise&lt;{ value: string[]; }&gt;</code>
 
---------------------
-
-
-### startVideo(...)
-
-```typescript
-startVideo(options: { url: string[]; }) => Promise<{ value: string[]; }>
-```
-
-| Param         | Type                            |
-| ------------- | ------------------------------- |
-| **`options`** | <code>{ url: string[]; }</code> |
-
-**Returns:** <code>Promise&lt;{ value: string[]; }&gt;</code>
 
 --------------------
 
