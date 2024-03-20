@@ -13,10 +13,10 @@ npx cap sync
 
 <docgen-index>
 
-* [`startFetch(...)`](#startfetch)
-* [`fetchDownloadList(...)`](#fetchdownloadlist)
-* [`addListener(string, ...)`](#addlistenerstring)
-* [Interfaces](#interfaces)
+- [`startFetch(...)`](#startfetch)
+- [`fetchDownloadList(...)`](#fetchdownloadlist)
+- [`addListener(string, ...)`](#addlistenerstring)
+- [Interfaces](#interfaces)
 
 </docgen-index>
 
@@ -35,9 +35,7 @@ startFetch(options: { url: string[]; }) => Promise<{ value: string[]; }>
 
 **Returns:** <code>Promise&lt;{ value: string[]; }&gt;</code>
 
-
---------------------
-
+---
 
 ### addListener(String, ...)
 
@@ -52,28 +50,26 @@ addListener(eventName: String, listenerFunc: (download: { result: string; }) => 
 
 **Returns:** <code><a href="#pluginlistenerhandle">PluginListenerHandle</a></code>
 
---------------------
-
+---
 
 ### Interfaces
-
 
 #### PluginListenerHandle
 
 This interface represents the different types of download events.
 
-| Prop | Type | Description |
-| -------- | ---- | ----------- |
-| **`onAdded`** | <code>String</code> | Event when a download is added |
-| **`onCancelled`** | <code>String</code> | Event when a download is cancelled |
-| **`onCompleted`** | <code>String</code> | Event when a download is completed |
-| **`onDeleted`** | <code>String</code> | Event when a download is deleted |
-| **`onDownloadBlockUpdated`** | <code>String</code> | Event when a download block is updated |
-| **`onError`** | <code>String</code> | Event when an error occurs during download |
-| **`onPaused`** | <code>String</code> | Event when a download is paused |
-| **`onProgress`** | <code>String</code> | Event when a download makes progress |
-| **`onQueued`** | <code>String</code> | Event when a download is queued |
-| **`onRemoved`** | <code>String</code> | Event when a download is removed |
-| **`onResumed`** | <code>String</code> | Event when a download is resumed |
-| **`onStarted`** | <code>String</code> | Event when a download is started |
-| **`onWaitingNetwork`** | <code>String</code> | Event when a download is waiting for network |
+| Prop                         | Type                | Description                                  | Android | iOS |
+| ---------------------------- | ------------------- | -------------------------------------------- | ------- | --- |
+| **`onAdded`**                | <code>String</code> | Event when a download is added               | YES     | NO  |
+| **`onCancelled`**            | <code>String</code> | Event when a download is cancelled           | YES     | NO  |
+| **`onCompleted`**            | <code>String</code> | Event when a download is completed           | YES     | YES |
+| **`onDeleted`**              | <code>String</code> | Event when a download is deleted             | YES     | NO  |
+| **`onDownloadBlockUpdated`** | <code>String</code> | Event when a download block is updated       | YES     | NO  |
+| **`onError`**                | <code>String</code> | Event when an error occurs during download   | YES     | YES |
+| **`onPaused`**               | <code>String</code> | Event when a download is paused              | YES     | NO  |
+| **`onProgress`**             | <code>String</code> | Event when a download makes progress         | YES     | YES |
+| **`onQueued`**               | <code>String</code> | Event when a download is queued              | YES     | NO  |
+| **`onRemoved`**              | <code>String</code> | Event when a download is removed             | YES     | NO  |
+| **`onResumed`**              | <code>String</code> | Event when a download is resumed             | YES     | NO  |
+| **`onStarted`**              | <code>String</code> | Event when a download is started             | YES     | NO  |
+| **`onWaitingNetwork`**       | <code>String</code> | Event when a download is waiting for network | YES     | NO  |
