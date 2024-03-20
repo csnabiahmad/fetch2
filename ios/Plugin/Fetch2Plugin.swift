@@ -14,10 +14,10 @@ import Capacitor
     
     func addDownload(download: Download) {
          CAPLog.print("DonwloadList Before:: Size")
-         CAPLog.print(downloadList?.count)
+         CAPLog.print(downloadList?.count as Any)
         downloadList?.append(download)
          CAPLog.print("DonwloadList After:: Size")
-         CAPLog.print(downloadList?.count)
+         CAPLog.print(downloadList?.count as Any)
         saveDownloads()
     }
     public func fetchDownloads() -> [Download]? {
@@ -84,13 +84,6 @@ import Capacitor
     @objc public func downloadFile(call: CAPPluginCall, url: URL, emitter: @escaping ProgressEmitter, config: InstanceConfiguration?) throws {
         loadDownloads()
         addDownload(download: Download(file: url.absoluteString,url:url.absoluteString))
-//           let directory = call.getString("directory", "DOCUMENTS")
-//           guard let path = call.getString("path") else {
-//               call.reject("Invalid file path")
-//               return
-//           }
-//           guard var urlString = call.getString("url") else { throw URLError(.badURL) }
-
         
         let directory = "DOCUMENTS"
         let path = url.lastPathComponent
@@ -145,8 +138,7 @@ import Capacitor
                        
                        if let index = self.downloadList?.firstIndex(where: { $0.url == downloadLocation?.absoluteString }) {
                            if var newDownload = self.downloadList?[index]{
-//                               newDownload.progress = 100.0
-                               newDownload.status = "COMPLETED"
+                                newDownload.status = "COMPLETED"
                                newDownload.fileUri = dest.absoluteString
                                newDownload.error = "none"
                                self.downloadList?[index] = newDownload
@@ -156,7 +148,7 @@ import Capacitor
                        
                        call.resolve(["path": dest.absoluteString])
                    } catch let error {
-                       call.reject("Unable to download file: \(error.localizedDescription)", "DOWNLOAD", error)
+                       call.reject("Unable to download file: \(error.localizedDescription)", "ERROR", error)
                        return
                    }
                } else {
@@ -221,18 +213,6 @@ import Capacitor
                    }
 
                    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
-//                       let currentTimestamp = Date().timeIntervalSince1970
-////                       let timeElapsed = currentTimestamp - lastEmitTimestamp
-//
-//                       if totalBytesExpectedToWrite > 0 {
-//                           if timeElapsed >= 0.1 {
-//                               emitter(totalBytesWritten, totalBytesExpectedToWrite)
-//                               lastEmitTimestamp = currentTimestamp
-//                           }
-//                       } else {
-//                           emitter(totalBytesWritten, 0)
-//                           lastEmitTimestamp = currentTimestamp
-//                       }
                        if totalBytesExpectedToWrite > 0 {
                            emitter(totalBytesWritten, totalBytesExpectedToWrite)
                        }

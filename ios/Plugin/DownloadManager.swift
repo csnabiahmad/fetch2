@@ -133,8 +133,7 @@ public class DownloadManager: NSObject, URLSessionDownloadDelegate  {
         print("DonwloadList :: Size")
         print(self.downloadList.count)
         if let index = self.downloadList.firstIndex(where: { $0.url == url }) {
-//            self.downloadList[index].progress = progress
-            saveDownloads()
+             saveDownloads()
         }
     }
 
@@ -148,5 +147,4 @@ public class DownloadManager: NSObject, URLSessionDownloadDelegate  {
             }
         }
     }
-    
 }
