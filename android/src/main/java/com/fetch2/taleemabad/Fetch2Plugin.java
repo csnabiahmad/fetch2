@@ -57,32 +57,6 @@ public class Fetch2Plugin extends Plugin implements FetchListener {
         });
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.R)
-    @PluginMethod
-    public void startVideoPlayer(PluginCall call) {
-        JSArray url = call.getArray("url");
-        JSObject ret = new JSObject();
-        ret.put("value", url);
-        try {
-            String videoPath = url.get(0).toString();
-            if (!new File(videoPath).exists()) {
-                ret.put("error", "File not found");
-                call.reject("File not found");
-            } else {
-                Intent intent = new Intent(this.getActivity(), VideoPlayerActivity.class);
-                intent.putExtra("videoPath", videoPath);
-                Bundle bundle = new Bundle();
-                bundle.putString("videoPath", videoPath);
-                startActivity(this.getActivity(), intent, bundle);
-                call.resolve(ret);
-            }
-
-        } catch (Exception e) {
-            ret.put("error", e.getMessage());
-            call.reject(e.getMessage());
-        }
-
-    }
 
     @RequiresApi(api = Build.VERSION_CODES.R)
     @PluginMethod

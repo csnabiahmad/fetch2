@@ -13,11 +13,10 @@ npx cap sync
 
 <docgen-index>
 
-* [`startFetch(...)`](#startfetch)
-* [`startVideo(...)`](#startvideo)
-* [`fetchDownloadList(...)`](#fetchdownloadlist)
-* [`addListener(string, ...)`](#addlistenerstring)
-* [Interfaces](#interfaces)
+- [`startFetch(...)`](#startfetch)
+- [`fetchDownloadList(...)`](#fetchdownloadlist)
+- [`addListener(string, ...)`](#addlistenerstring)
+- [Interfaces](#interfaces)
 
 </docgen-index>
 
