@@ -81,11 +81,7 @@ public class Fetch2Plugin extends Plugin implements FetchListener {
     private void checkStoragePermissions() {
         PermissionX
                 .init(this.getActivity())
-                .permissions(
-                        (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-                                ? new String[]{Manifest.permission.MANAGE_EXTERNAL_STORAGE}
-                                : new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,
-                                Manifest.permission.WRITE_EXTERNAL_STORAGE,})
+                .permissions( new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE,})
                 .explainReasonBeforeRequest()
                 .onExplainRequestReason(
                         (scope, deniedList) -> scope.showRequestReasonDialog(deniedList,
