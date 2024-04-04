@@ -1,12 +1,8 @@
 package com.fetch2.taleemabad;
 
-import static androidx.core.content.ContextCompat.startActivity;
-
 import android.Manifest;
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -14,7 +10,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
-import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -28,13 +23,13 @@ import com.tonyodev.fetch2.Error;
 import com.tonyodev.fetch2.FetchListener;
 import com.tonyodev.fetch2core.DownloadBlock;
 
-import java.io.File;
 import java.util.List;
 
 @CapacitorPlugin(name = "Fetch2Plugin", permissions = {
         @Permission(strings = {
                 Manifest.permission.READ_EXTERNAL_STORAGE,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE,
+//                Manifest.permission.MANAGE_EXTERNAL_STORAGE
         }, alias = "storage")
 })
 public class Fetch2Plugin extends Plugin implements FetchListener {
@@ -53,7 +48,8 @@ public class Fetch2Plugin extends Plugin implements FetchListener {
         this.getActivity().getMainExecutor().execute(() -> {
             initFetch2();
             saveCall(call);
-            checkStoragePermissions();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) fetch2.initDownloading(call);
+            else checkStoragePermissions();
         });
     }
 
@@ -79,9 +75,20 @@ public class Fetch2Plugin extends Plugin implements FetchListener {
 
     @RequiresApi(api = Build.VERSION_CODES.R)
     private void checkStoragePermissions() {
+        String[] permissions = new String[]{
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+        };
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+//            permissions = new String[]{
+//                    Manifest.permission.READ_EXTERNAL_STORAGE,
+//                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+//                    Manifest.permission.MANAGE_EXTERNAL_STORAGE
+//            };
+//        }
         PermissionX
                 .init(this.getActivity())
-                .permissions( new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE,})
+                .permissions(permissions)
                 .explainReasonBeforeRequest()
                 .onExplainRequestReason(
                         (scope, deniedList) -> scope.showRequestReasonDialog(deniedList,
